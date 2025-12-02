@@ -32,8 +32,9 @@ export const GameGuide: React.FC<GameGuideProps> = ({ children }) => {
         },
         {
             title: "🎁 랭킹 이벤트",
-            description: "실시간으로 다른 하객들과 경쟁해봐!\n\n가장 빨리 성공한 1등부터 3등한테는 신혼여행 다녀와서 특별한 선물을 줄게!",
-            image: gameGuideRanking
+            description: "실시간으로 다른 하객들과 경쟁해봐!\n\n결혼식 당일 자정 기준 가장 빨리 성공한 1등부터 3등한테는 신혼여행 다녀와서 특별한 선물을 줄게!",
+            image: gameGuideRanking,
+            note: "※ 1등만 볼 수 있는 히든 메시지도 있어!"
         },
         {
             title: "준비됐어?",
@@ -67,6 +68,11 @@ export const GameGuide: React.FC<GameGuideProps> = ({ children }) => {
                                             <p className="text-pretty md:text-xl text-white/90 whitespace-pre-line mb-6 md:mb-8 leading-relaxed max-w-2xl drop-shadow-md">
                                                 {slide.description}
                                             </p>
+                                            {slide.note && (
+                                                <p className="text-xs md:text-sm text-white/60 -mt-4 mb-6 md:mb-8">
+                                                    {slide.note}
+                                                </p>
+                                            )}
                                             {slide.action && (
                                                 <Button className="w-full max-w-xs md:max-w-md bg-white text-black hover:bg-white/90 font-bold py-6 md:py-8 text-lg md:text-xl rounded-full mt-4 md:mt-6 transition-transform hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
                                                     게임 시작하기

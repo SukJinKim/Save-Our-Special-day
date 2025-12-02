@@ -5,7 +5,7 @@ import LightRays from '@/components/LightRays';
 
 export const MainLayout: React.FC = () => {
     return (
-        <div className="relative w-full min-h-screen bg-[#030014] overflow-hidden selection:bg-white/20">
+        <div className="relative w-full min-h-screen bg-[#030014] selection:bg-white/20">
             <div className="absolute inset-0 z-0">
                 <LightRays
                     raysOrigin={'top-center'}
