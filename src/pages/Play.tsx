@@ -185,8 +185,8 @@ export const Play: React.FC = () => {
         <div className="w-full min-h-screen flex flex-col items-center justify-center p-4 pt-20 pb-4 md:pt-24 md:pb-10">
             <Card className="bg-zinc-900/80 border-zinc-800 p-4 md:p-6 backdrop-blur-sm max-w-lg w-full">
                 <div className="text-center mb-4 md:mb-6">
-                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">퍼즐 맞추기</h1>
-                    <p className="text-zinc-400 text-xs md:text-base">조각을 드래그하여 원래 그림을 완성하세요!</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">퍼즐을 완성해줘!</h1>
+                    <p className="text-zinc-400 text-xs md:text-base">조각을 드래그하여 결혼 사진을 완성하세요.</p>
                 </div>
 
                 {/* Timer Bar */}
@@ -199,7 +199,7 @@ export const Play: React.FC = () => {
                     </div>
                     <div className="w-full bg-zinc-800 rounded-full h-2 md:h-2.5 overflow-hidden">
                         <div
-                            className={`h-2 md:h-2.5 rounded-full transition-all duration-1000 ease-linear ${timeLeft <= 10000 ? 'bg-red-500' : 'bg-white'}`}
+                            className={`h-2 md:h-2.5 rounded-full ${timeLeft <= 10000 ? 'bg-red-500' : 'bg-white'}`}
                             style={{ width: `${(timeLeft / 60000) * 100}%` }}
                         ></div>
                     </div>
@@ -271,7 +271,7 @@ export const Play: React.FC = () => {
                             />
                         </div>
                         <DialogDescription className="text-center text-zinc-300 text-base">
-                            덕분에 엉망이 될 뻔한 결혼식 사진을 되살렸어!<br />
+                            덕분에 엉망이 될 뻔한 결혼 사진을 되살렸어!<br />
                             우리의 소중한 추억을 지켜줘서 정말 고마워.
                         </DialogDescription>
                         <div className="bg-zinc-800/50 px-6 py-3 rounded-lg border border-zinc-700">

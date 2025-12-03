@@ -13,6 +13,7 @@ import gameGuideIntro from '@/assets/images/game_guide_intro.png';
 import gameGuideRules from '@/assets/images/game_guide_rules.png';
 import gameGuideRanking from '@/assets/images/game_guide_ranking.png';
 import gameGuideReady from '@/assets/images/game_guide_ready.png';
+import { useNavigate } from 'react-router-dom';
 
 interface GameGuideProps {
     children: React.ReactNode;
@@ -43,6 +44,7 @@ export const GameGuide: React.FC<GameGuideProps> = ({ children }) => {
             action: true
         }
     ];
+    const navigate = useNavigate();
 
     return (
         <Dialog>
@@ -74,7 +76,10 @@ export const GameGuide: React.FC<GameGuideProps> = ({ children }) => {
                                                 </p>
                                             )}
                                             {slide.action && (
-                                                <Button className="w-full max-w-xs md:max-w-md bg-white text-black hover:bg-white/90 font-bold py-6 md:py-8 text-lg md:text-xl rounded-full mt-4 md:mt-6 transition-transform hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                                                <Button
+                                                    className="w-full max-w-xs md:max-w-md bg-white text-black hover:bg-white/90 font-bold py-6 md:py-8 text-lg md:text-xl rounded-full mt-4 md:mt-6 transition-transform hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                                                    onClick={() => navigate('/play')}
+                                                >
                                                     게임 시작하기
                                                 </Button>
                                             )}

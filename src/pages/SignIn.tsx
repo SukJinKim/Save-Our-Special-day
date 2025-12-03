@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -27,6 +28,7 @@ const signInSchema = z.object({
 type SignInFormValues = z.infer<typeof signInSchema>;
 
 export const SignIn: React.FC = () => {
+    const navigate = useNavigate();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [formData, setFormData] = useState<SignInFormValues | null>(null);
 
@@ -58,6 +60,7 @@ export const SignIn: React.FC = () => {
             console.log('Sign in:', formData);
             // TODO: Implement actual sign in logic
             setIsDrawerOpen(false);
+            navigate('/play');
         }
     };
 

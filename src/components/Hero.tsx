@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Timer } from 'lucide-react';
 import { GameGuide } from '@/components/GameGuide';
 
 export const Hero: React.FC = () => {
+    const navigate = useNavigate();
     return (
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 mb-8 text-sm font-medium text-white/80 bg-white/5 border border-white/10 rounded-full backdrop-blur-sm">
@@ -22,6 +24,7 @@ export const Hero: React.FC = () => {
                     variant="secondary"
                     size="lg"
                     className="h-14 px-10 text-lg font-medium text-black bg-white hover:bg-white/90 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                    onClick={() => navigate('/play')}
                 >
                     지금 시작하기
                 </Button>
