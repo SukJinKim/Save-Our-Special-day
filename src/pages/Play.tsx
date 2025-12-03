@@ -141,7 +141,6 @@ export const Play: React.FC = () => {
         setShuffledItems(shuffled);
         setIsWon(false);
         setIsGameOver(false);
-        setIsGameOver(false);
         setTimeLeft(60000);
     };
 
@@ -199,8 +198,8 @@ export const Play: React.FC = () => {
                     </div>
                     <div className="w-full bg-zinc-800 rounded-full h-2 md:h-2.5 overflow-hidden">
                         <div
-                            className={`h-2 md:h-2.5 rounded-full ${timeLeft <= 10000 ? 'bg-red-500' : 'bg-white'}`}
-                            style={{ width: `${(timeLeft / 60000) * 100}%` }}
+                            className={`h-2 md:h-2.5 rounded-full ${timeLeft <= 10000 ? 'bg-red-500' : 'bg-white'} w-full origin-left`}
+                            style={{ transform: `scaleX(${timeLeft / 60000})` }}
                         ></div>
                     </div>
                 </div>
@@ -258,7 +257,10 @@ export const Play: React.FC = () => {
             </Card>
 
             <Dialog open={isWon} onOpenChange={(open) => !open && setIsWon(false)}>
-                <DialogContent className="sm:max-w-md bg-zinc-900 border-zinc-800 text-white">
+                <DialogContent
+                    className="sm:max-w-md bg-zinc-900 border-zinc-800 text-white"
+                    onInteractOutside={(e) => e.preventDefault()}
+                >
                     <DialogHeader>
                         <DialogTitle className="text-center text-2xl font-bold">결혼식을 구해줘서 고마워!</DialogTitle>
                     </DialogHeader>
