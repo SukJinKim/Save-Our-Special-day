@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createSwapy } from 'swapy';
-import { Shuffle, RotateCcw } from 'lucide-react';
+import { Shuffle, RotateCcw, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -39,6 +39,7 @@ export const Play: React.FC = () => {
     const [isWon, setIsWon] = useState(false);
     const [timeLeft, setTimeLeft] = useState(60000);
     const [isGameOver, setIsGameOver] = useState(false);
+    const [showHint, setShowHint] = useState(false);
     const swapyRef = useRef<any>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -237,18 +238,31 @@ export const Play: React.FC = () => {
                                         backgroundPosition: item.pos
                                     }}
                                 >
-                                    {/* Number for debugging/easier solving, maybe remove later */}
-                                    {/* <span className="absolute top-1 left-1 bg-black/50 text-white text-xs px-1 rounded">{item.id}</span> */}
+                                    {/* Number for debugging/easier solving */}
+                                    {showHint && (
+                                        <span className="absolute top-1 left-1 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full font-bold backdrop-blur-sm border border-white/20">
+                                            {item.id}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         );
                     })}
                 </div>
 
-                <div className="flex justify-center">
+                <div className={isGameOver ? "flex justify-center" : "flex justify-between gap-3"}>
+                    {!isGameOver && (
+                        <Button
+                            onClick={() => setShowHint(!showHint)}
+                            className="flex-1 bg-zinc-800 text-white hover:bg-zinc-700 gap-2 font-bold px-6 py-4 md:py-2 h-auto md:h-10"
+                        >
+                            <Lightbulb className={`w-4 h-4 ${showHint ? 'text-yellow-400 fill-yellow-400' : ''}`} />
+                            Hint
+                        </Button>
+                    )}
                     <Button
                         onClick={shufflePuzzle}
-                        className="bg-white text-black hover:bg-zinc-200 gap-2 font-bold px-6 py-4 md:py-2 h-auto md:h-10"
+                        className={`${isGameOver ? '' : 'flex-1'} bg-white text-black hover:bg-zinc-200 gap-2 font-bold px-6 py-4 md:py-2 h-auto md:h-10`}
                     >
                         {isGameOver ? <RotateCcw className="w-4 h-4" /> : <Shuffle className="w-4 h-4" />}
                         {isGameOver ? '다시 시작' : 'Shuffle'}
