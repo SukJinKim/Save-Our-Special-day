@@ -44,6 +44,7 @@ export const Play: React.FC = () => {
     const [hintTimeLeft, setHintTimeLeft] = useState(3000);
     const [hasUsedHint, setHasUsedHint] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
     const swapyRef = useRef<any>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -58,6 +59,14 @@ export const Play: React.FC = () => {
         // Select random image on mount
         const randomImage = PUZZLE_IMAGES[Math.floor(Math.random() * PUZZLE_IMAGES.length)];
         setImage(randomImage);
+
+        // Preload image
+        const img = new Image();
+        img.src = randomImage;
+        img.onload = () => {
+            setIsImageLoaded(true);
+        };
+
         shufflePuzzle();
 
         return () => {
@@ -66,7 +75,7 @@ export const Play: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (isLoading) return; // Don't start timer while loading
+        if (isLoading || !isImageLoaded) return; // Don't start timer while loading or image not ready
         if (isWon || isGameOver || isHintActive) {
             if (timerRef.current) clearInterval(timerRef.current);
             return;
@@ -91,7 +100,7 @@ export const Play: React.FC = () => {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [isWon, isGameOver, shuffledItems, isHintActive, isLoading]); // Restart timer when shuffledItems changes (new game)
+    }, [isWon, isGameOver, shuffledItems, isHintActive, isLoading, isImageLoaded]); // Restart timer when shuffledItems changes (new game)
 
     // Hint Timer
     useEffect(() => {
@@ -117,7 +126,7 @@ export const Play: React.FC = () => {
     }, [isHintActive, hintTimeLeft]);
 
     useEffect(() => {
-        if (!isLoading && containerRef.current && shuffledItems.length > 0) {
+        if (!isLoading && isImageLoaded && containerRef.current && shuffledItems.length > 0) {
             if (swapyRef.current) {
                 swapyRef.current.destroy();
             }
@@ -131,7 +140,7 @@ export const Play: React.FC = () => {
                 checkWinCondition(event.newSlotItemMap.asObject);
             });
         }
-    }, [shuffledItems, isWon, isGameOver, isLoading]);
+    }, [shuffledItems, isWon, isGameOver, isLoading, isImageLoaded]);
 
     useEffect(() => {
         if (isWon) {
@@ -228,7 +237,7 @@ export const Play: React.FC = () => {
                 <div className="mb-3 md:mb-4 w-full">
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-xs font-medium text-zinc-400">남은 시간</span>
-                        {isLoading ? (
+                        {isLoading || !isImageLoaded ? (
                             <Skeleton className="h-5 w-16" />
                         ) : (
                             <span className={`text-sm font-bold font-mono ${timeLeft <= 10000 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
@@ -244,7 +253,7 @@ export const Play: React.FC = () => {
                     </div>
                 </div>
 
-                {isLoading ? (
+                {isLoading || !isImageLoaded ? (
                     <div className="grid grid-cols-3 gap-1 w-full bg-zinc-950 p-1 rounded-lg border border-zinc-800 mb-4 md:mb-6" style={{ aspectRatio: '1/1' }}>
                         {Array.from({ length: 9 }).map((_, i) => (
                             <Skeleton key={i} className="w-full h-full rounded-sm" />
