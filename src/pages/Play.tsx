@@ -39,7 +39,9 @@ export const Play: React.FC = () => {
     const [isWon, setIsWon] = useState(false);
     const [timeLeft, setTimeLeft] = useState(60000);
     const [isGameOver, setIsGameOver] = useState(false);
-    const [showHint, setShowHint] = useState(false);
+    const [isHintActive, setIsHintActive] = useState(false);
+    const [hintTimeLeft, setHintTimeLeft] = useState(3000);
+    const [hasUsedHint, setHasUsedHint] = useState(false);
     const swapyRef = useRef<any>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -58,7 +60,7 @@ export const Play: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (isWon || isGameOver) {
+        if (isWon || isGameOver || isHintActive) {
             if (timerRef.current) clearInterval(timerRef.current);
             return;
         }
@@ -82,7 +84,30 @@ export const Play: React.FC = () => {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [isWon, isGameOver, shuffledItems]); // Restart timer when shuffledItems changes (new game)
+    }, [isWon, isGameOver, shuffledItems, isHintActive]); // Restart timer when shuffledItems changes (new game)
+
+    // Hint Timer
+    useEffect(() => {
+        let hintInterval: ReturnType<typeof setInterval>;
+
+        if (isHintActive && hintTimeLeft > 0) {
+            hintInterval = setInterval(() => {
+                setHintTimeLeft((prev) => {
+                    if (prev <= 10) {
+                        setIsHintActive(false);
+                        return 0;
+                    }
+                    return prev - 10;
+                });
+            }, 10);
+        } else if (hintTimeLeft <= 0) {
+            setIsHintActive(false);
+        }
+
+        return () => {
+            if (hintInterval) clearInterval(hintInterval);
+        };
+    }, [isHintActive, hintTimeLeft]);
 
     useEffect(() => {
         if (containerRef.current && shuffledItems.length > 0) {
@@ -143,6 +168,9 @@ export const Play: React.FC = () => {
         setIsWon(false);
         setIsGameOver(false);
         setTimeLeft(60000);
+        setHasUsedHint(false);
+        setHintTimeLeft(3000);
+        setIsHintActive(false);
     };
 
     const checkWinCondition = (slotItemMap: Record<string, string>) => {
@@ -239,11 +267,7 @@ export const Play: React.FC = () => {
                                     }}
                                 >
                                     {/* Number for debugging/easier solving */}
-                                    {showHint && (
-                                        <span className="absolute top-1 left-1 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full font-bold backdrop-blur-sm border border-white/20">
-                                            {item.id}
-                                        </span>
-                                    )}
+                                    {/* Number for debugging/easier solving - Removed old hint */}
                                 </div>
                             </div>
                         );
@@ -253,10 +277,14 @@ export const Play: React.FC = () => {
                 <div className={isGameOver ? "flex justify-center" : "flex justify-between gap-3"}>
                     {!isGameOver && (
                         <Button
-                            onClick={() => setShowHint(!showHint)}
-                            className="flex-1 bg-zinc-800 text-white hover:bg-zinc-700 gap-2 font-bold px-6 py-4 md:py-2 h-auto md:h-10"
+                            onClick={() => {
+                                setIsHintActive(true);
+                                setHasUsedHint(true);
+                            }}
+                            disabled={hasUsedHint}
+                            className="flex-1 bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed gap-2 font-bold px-6 py-4 md:py-2 h-auto md:h-10"
                         >
-                            <Lightbulb className={`w-4 h-4 ${showHint ? 'text-yellow-400 fill-yellow-400' : ''}`} />
+                            <Lightbulb className={`w-4 h-4 ${isHintActive ? 'text-yellow-400 fill-yellow-400' : ''}`} />
                             Hint
                         </Button>
                     )}
@@ -303,6 +331,26 @@ export const Play: React.FC = () => {
                             실시간 랭킹 확인하기
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Hint Dialog */}
+            <Dialog open={isHintActive} onOpenChange={(open) => !open && setIsHintActive(false)}>
+                <DialogContent className="sm:max-w-lg bg-zinc-900 border-zinc-800 text-white" onInteractOutside={(e) => e.preventDefault()}>
+                    <DialogHeader>
+                        <DialogTitle className="text-center text-xl font-bold">Hint</DialogTitle>
+                        <DialogDescription className="text-center text-zinc-400">
+                            3초 동안 완성된 결혼 사진을 확인할 수 있습니다.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="relative w-full aspect-square rounded-lg overflow-hidden mt-2">
+                        <img src={image} alt="Original Puzzle" className="w-full h-full object-cover" />
+                        <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+                            <span className="text-2xl font-bold font-mono text-yellow-400">
+                                {(hintTimeLeft / 1000).toFixed(2)}s
+                            </span>
+                        </div>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>
