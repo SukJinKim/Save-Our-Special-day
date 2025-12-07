@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Skeleton } from "@/components/ui/skeleton";
 import gameSuccess from '@/assets/images/game_success.png';
+import { RotateCcw, Trophy } from 'lucide-react';
 
 const SuccessDialogImage = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -34,19 +35,24 @@ interface SuccessDialogProps {
     onOpenChange: (open: boolean) => void;
     record: string;
     onNavigateRanking: () => void;
+    onRetry: () => void;
 }
 
 export const SuccessDialog: React.FC<SuccessDialogProps> = ({
     open,
     onOpenChange,
     record,
-    onNavigateRanking
+    onNavigateRanking,
+    onRetry
 }) => {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
                 className="sm:max-w-md bg-zinc-900 border-zinc-800 text-white"
                 onInteractOutside={(e) => e.preventDefault()}
+                onPointerDownOutside={(e) => e.preventDefault()}
+                onEscapeKeyDown={(e) => e.preventDefault()}
+                showCloseButton={false}
             >
                 <DialogHeader>
                     <DialogTitle className="text-center text-2xl font-bold">결혼식을 구해줘서 고마워!</DialogTitle>
@@ -62,11 +68,22 @@ export const SuccessDialog: React.FC<SuccessDialogProps> = ({
                         <p className="text-2xl font-bold text-green-400 font-mono">{record}초</p>
                     </div>
                 </div>
-                <DialogFooter className="sm:justify-center">
+                <DialogFooter className="flex-row sm:justify-center gap-3">
+                    <Button
+                        onClick={() => {
+                            onRetry();
+                            onOpenChange(false);
+                        }}
+                        className="flex-1 bg-zinc-800 text-white hover:bg-zinc-700 gap-2 font-bold py-6"
+                    >
+                        <RotateCcw className="w-4 h-4" />
+                        재도전하기
+                    </Button>
                     <Button
                         onClick={onNavigateRanking}
-                        className="w-full bg-white text-black hover:bg-zinc-200 font-bold py-6"
+                        className="flex-1 bg-white text-black hover:bg-zinc-200 gap-2 font-bold py-6"
                     >
+                        <Trophy className="w-4 h-4" />
                         명예의 전당 확인하기
                     </Button>
                 </DialogFooter>

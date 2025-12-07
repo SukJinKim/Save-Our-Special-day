@@ -26,6 +26,7 @@ export const Play: React.FC = () => {
     const [image, setImage] = useState<string>('');
     const [shuffledItems, setShuffledItems] = useState<typeof DEFAULT_ITEMS>([]);
     const [selectedindex, setSelectedIndex] = useState<number | null>(null);
+    const [isGlowing, setIsGlowing] = useState(false);
     const [isWon, setIsWon] = useState(false);
     const [timeLeft, setTimeLeft] = useState(60000);
     const [isGameOver, setIsGameOver] = useState(false);
@@ -37,6 +38,23 @@ export const Play: React.FC = () => {
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const endTimeRef = useRef<number>(0);
     const navigate = useNavigate();
+
+    const shufflePuzzle = () => {
+        const shuffled = [...DEFAULT_ITEMS];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        setShuffledItems(shuffled);
+        setSelectedIndex(null);
+        setIsWon(false);
+        setIsGlowing(false);
+        setIsGameOver(false);
+        setTimeLeft(60000);
+        setHasUsedHint(false);
+        setHintTimeLeft(10000);
+        setIsHintActive(false);
+    };
 
     useEffect(() => {
         setIsLoading(false);
@@ -63,7 +81,7 @@ export const Play: React.FC = () => {
 
     useEffect(() => {
         if (isLoading || !isImageLoaded) return; // Don't start timer while loading or image not ready
-        if (isWon || isGameOver || isHintActive) {
+        if (isWon || isGameOver || isHintActive || isGlowing) {
             if (timerRef.current) clearInterval(timerRef.current);
             return;
         }
@@ -87,7 +105,7 @@ export const Play: React.FC = () => {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [isWon, isGameOver, shuffledItems, isHintActive, isLoading, isImageLoaded]); // Restart timer when shuffledItems changes (new game)
+    }, [isWon, isGameOver, shuffledItems, isHintActive, isLoading, isImageLoaded, isGlowing]); // Restart timer when shuffledItems changes (new game)
 
     // Hint Timer
     useEffect(() => {
@@ -113,6 +131,16 @@ export const Play: React.FC = () => {
     }, [isHintActive, hintTimeLeft]);
 
     useEffect(() => {
+        if (isGlowing) {
+            const timer = setTimeout(() => {
+                setIsWon(true);
+                setIsGlowing(false);
+            }, 2000); // Glow for 2 seconds
+            return () => clearTimeout(timer);
+        }
+    }, [isGlowing]);
+
+    useEffect(() => {
         if (isWon) {
             const duration = 3 * 1000;
             const animationEnd = Date.now() + duration;
@@ -122,7 +150,7 @@ export const Play: React.FC = () => {
                 return Math.random() * (max - min) + min;
             }
 
-            const interval: any = setInterval(function () {
+            const interval: ReturnType<typeof setInterval> = setInterval(function () {
                 const timeLeft = animationEnd - Date.now();
 
                 if (timeLeft <= 0) {
@@ -144,24 +172,8 @@ export const Play: React.FC = () => {
         }
     }, [isWon]);
 
-    const shufflePuzzle = () => {
-        const shuffled = [...DEFAULT_ITEMS];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-        setShuffledItems(shuffled);
-        setSelectedIndex(null);
-        setIsWon(false);
-        setIsGameOver(false);
-        setTimeLeft(60000);
-        setHasUsedHint(false);
-        setHintTimeLeft(10000);
-        setIsHintActive(false);
-    };
-
     const handleTileClick = (index: number) => {
-        if (isWon || isGameOver) return;
+        if (isWon || isGameOver || isGlowing) return;
 
         if (selectedindex === null) {
             // Select first tile
@@ -182,7 +194,7 @@ export const Play: React.FC = () => {
     const checkWinCondition = (currentItems: typeof DEFAULT_ITEMS) => {
         const isCorrect = currentItems.every((item, index) => item.id === DEFAULT_ITEMS[index].id);
         if (isCorrect) {
-            setIsWon(true);
+            setIsGlowing(true);
         }
     };
 
@@ -236,10 +248,11 @@ export const Play: React.FC = () => {
                     </div>
                 ) : (
                     <div
-                        className="grid grid-cols-4 gap-0.5 w-full bg-zinc-950 p-1 rounded-lg border border-zinc-800 mb-4 md:mb-6 relative"
+                        className={`grid grid-cols-4 gap-0.5 w-full bg-zinc-950 p-1 rounded-lg border border-zinc-800 mb-4 md:mb-6 relative transition-all duration-1000 ${isGlowing ? 'shadow-[0_0_50px_20px_rgba(255,255,255,0.5)] z-20 scale-105 border-white' : ''
+                            }`}
                         style={{ aspectRatio: '1/1' }}
                     >
-                        {isGameOver && !isWon && (
+                        {isGameOver && !isWon && !isGlowing && (
                             <div className="absolute inset-0 z-10 bg-black/70 flex flex-col items-center justify-center rounded-lg backdrop-blur-sm">
                                 <h2 className="text-2xl md:text-3xl font-bold text-red-500 mb-2">Game Over</h2>
                                 <p className="text-zinc-300 text-sm md:text-base">시간이 초과되었습니다.</p>
@@ -252,7 +265,7 @@ export const Play: React.FC = () => {
                                 className={`w-full h-full rounded-sm overflow-hidden relative cursor-pointer transition-all duration-200 ${selectedindex === index
                                     ? 'ring-1 ring-yellow-400 ring-offset-1 ring-offset-zinc-900 z-10 scale-105'
                                     : 'hover:brightness-110'
-                                    }`}
+                                    } ${isGlowing ? 'ring-0' : ''}`}
                                 onClick={() => handleTileClick(index)}
                             >
                                 <div
@@ -297,6 +310,7 @@ export const Play: React.FC = () => {
                 onOpenChange={(open) => !open && setIsWon(false)}
                 record={getRecord()}
                 onNavigateRanking={() => navigate('/ranking')}
+                onRetry={shufflePuzzle}
             />
 
             {/* Hint Dialog */}
