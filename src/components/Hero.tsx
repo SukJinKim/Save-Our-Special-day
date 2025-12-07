@@ -14,7 +14,7 @@ export const Hero: React.FC = () => {
     }, []);
 
     return (
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center">
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 text-center">
             {isLoading ? (
                 <>
                     <Skeleton className="h-8 w-64 rounded-full mb-8" />

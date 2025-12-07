@@ -42,23 +42,23 @@ export const GameGuide: React.FC<GameGuideProps> = ({ children }) => {
     const slides = [
         {
             title: "🧩 게임 소개",
-            description: "헉! 우리 결혼 사진이 모두 흩어졌어.\n\n퍼즐을 맞춰서 원래대로 돌려줘!",
+            description: "헉! 결혼식 시작 전인데\n우리 결혼 사진들이 모두 흩어졌어.\n\n퍼즐을 맞춰서 원래대로 돌려줘!",
             image: gameGuideIntro
         },
         {
             title: "🎮 게임 미션 & 규칙",
-            description: "미션은 뒤죽박죽 섞인 3x3 퍼즐 맞추기!\n제한 시간은 딱 60초야.\n\n빠른 손놀림과 집중력이 필요해.",
+            description: "미션은 뒤죽박죽 섞인 4x4 퍼즐 맞추기!\n제한 시간은 딱 60초야.\n\n빠른 손놀림과 집중력이 필요해.",
             image: gameGuideRules
         },
         {
             title: "🎁 랭킹 이벤트",
-            description: "실시간으로 다른 하객들과 경쟁해봐!\n\n결혼식 당일 자정 기준 가장 빨리 성공한 1등부터 3등한테는 신혼여행 다녀와서 특별한 선물을 줄게!",
+            description: "실시간으로 다른 하객들과 경쟁해봐!\n\n결혼식 당일 자정 기준 가장 빨리 성공한\n1등부터 3등에게는 신혼여행 다녀와서\n특별한 선물을 보낼게!",
             image: gameGuideRanking,
             note: "※ 1등만 볼 수 있는 히든 메시지도 있어!"
         },
         {
             title: "준비됐어?",
-            description: "지금 바로 도전해서 우리의 소중한 결혼사진을 완성해줘!",
+            description: "지금 바로 도전해서\n우리의 소중한 결혼사진을 완성해줘!",
             image: gameGuideReady,
             action: true
         }
@@ -84,7 +84,7 @@ export const GameGuide: React.FC<GameGuideProps> = ({ children }) => {
                                                 {slide.description}
                                             </p>
                                             {slide.note && (
-                                                <p className="text-xs md:text-sm text-white/60 -mt-4 mb-6 md:mb-8">
+                                                <p className="text-xs md:text-sm text-white/60 mt-4 mb-6 md:mb-8">
                                                     {slide.note}
                                                 </p>
                                             )}

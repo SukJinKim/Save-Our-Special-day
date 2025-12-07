@@ -1,11 +1,12 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
+import { Footer } from './Footer';
 import LightRays from '@/components/LightRays';
 
 export const MainLayout: React.FC = () => {
     return (
-        <div className="relative w-full min-h-screen bg-[#030014] selection:bg-white/20">
+        <div className="relative w-full min-h-screen bg-[#030014] selection:bg-white/20 flex flex-col">
             <div className="absolute inset-0 z-0">
                 <LightRays
                     raysOrigin={'top-center'}
@@ -23,8 +24,12 @@ export const MainLayout: React.FC = () => {
 
             <Header />
 
-            <div className="relative z-10">
+            <div className="relative z-10 flex-1 flex flex-col w-full">
                 <Outlet />
+            </div>
+
+            <div className="relative z-10">
+                <Footer />
             </div>
         </div>
     );

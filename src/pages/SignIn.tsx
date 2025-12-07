@@ -72,7 +72,7 @@ export const SignIn: React.FC = () => {
     };
 
     return (
-        <div className="w-full flex items-center justify-center p-4 min-h-screen pt-24 pb-10">
+        <div className="w-full flex-1 flex items-center justify-center p-4">
             <Card className="w-full max-w-md bg-zinc-900 border-zinc-800 text-white">
                 <CardHeader className="flex flex-col items-center space-y-2 md:space-y-4 pb-2 md:pb-8">
                     <div className="scale-100 md:scale-150 mb-2">

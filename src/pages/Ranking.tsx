@@ -9,14 +9,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
 import { Card } from '@/components/ui/card';
 
 // Mock Data Generation
@@ -25,7 +17,7 @@ const KOREAN_NAMES = ['민준', '서준', '도윤', '예준', '시우', '하준'
 
 const generateMockData = () => {
     const data = [];
-    for (let i = 1; i <= 30; i++) {
+    for (let i = 1; i <= 10; i++) {
         // Generate random seconds between 5.00 and 59.99
         const totalSeconds = 5 + Math.random() * 55;
         const seconds = Math.floor(totalSeconds);
@@ -98,29 +90,29 @@ export const Ranking: React.FC = () => {
     }, [isLoading]);
 
     return (
-        <div className="w-full min-h-screen flex flex-col items-center justify-center p-4 pt-20 md:pt-24">
-            <Card className="bg-zinc-900/80 border-zinc-800 p-6 backdrop-blur-sm max-w-2xl w-full">
-                <div className="text-center mb-8 relative">
-                    <h1 className="text-3xl font-bold text-white mb-2">실시간 랭킹</h1>
-                    <p className="text-zinc-400">결혼식을 구한 최고의 영웅들입니다.</p>
+        <div className="w-full flex-1 flex flex-col items-center justify-center px-4 py-2 md:p-6">
+            <Card className="bg-zinc-900/80 border-zinc-800 p-4 md:p-6 backdrop-blur-sm max-w-2xl w-full">
+                <div className="text-center mb-4 md:mb-8 relative">
+                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">명예의 전당</h1>
+                    <p className="text-sm md:text-base text-zinc-400">저희의 결혼식을 완성해주셔서 감사합니다.</p>
                 </div>
 
-                <div className="rounded-md border border-zinc-800 mb-6 overflow-hidden">
+                <div className="rounded-md border border-zinc-800 mb-0 overflow-hidden">
                     <Table>
-                        <TableHeader>
-                            <TableRow className="border-zinc-800 hover:bg-zinc-900/50">
-                                <TableHead className="text-zinc-400 w-[100px]">순위</TableHead>
-                                <TableHead className="text-zinc-400">이름</TableHead>
-                                <TableHead className="text-zinc-400 text-right">기록</TableHead>
+                        <TableHeader className="bg-zinc-900/50">
+                            <TableRow className="border-zinc-800 hover:bg-transparent">
+                                <TableHead className="text-center text-zinc-400 w-[15%] h-8 md:h-10 text-xs md:text-sm">순위</TableHead>
+                                <TableHead className="text-center text-zinc-400 w-[55%] h-8 md:h-10 text-xs md:text-sm">이름</TableHead>
+                                <TableHead className="text-center text-zinc-400 w-[30%] h-8 md:h-10 text-xs md:text-sm">기록</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {isLoading ? (
-                                Array.from({ length: 5 }).map((_, i) => (
-                                    <TableRow key={i} className="border-zinc-800">
-                                        <TableCell><Skeleton className="h-6 w-8" /></TableCell>
-                                        <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                                        <TableCell className="text-right"><Skeleton className="h-6 w-16 ml-auto" /></TableCell>
+                                Array.from({ length: 10 }).map((_, i) => (
+                                    <TableRow key={i} className="border-zinc-800/50">
+                                        <TableCell className="text-center py-2 md:py-3"><Skeleton className="h-4 w-4 mx-auto bg-zinc-800" /></TableCell>
+                                        <TableCell className="text-center py-2 md:py-3"><Skeleton className="h-4 w-20 mx-auto bg-zinc-800" /></TableCell>
+                                        <TableCell className="text-center py-2 md:py-3"><Skeleton className="h-4 w-12 mx-auto bg-zinc-800" /></TableCell>
                                     </TableRow>
                                 ))
                             ) : (
@@ -189,40 +181,6 @@ export const Ranking: React.FC = () => {
                         </TableBody>
                     </Table>
                 </div>
-                {!isLoading && (
-                    <Pagination>
-                        <PaginationContent>
-                            <PaginationItem>
-                                <PaginationPrevious
-                                    href="#"
-                                    onClick={(e) => { e.preventDefault(); handlePageChange(currentPage - 1); }}
-                                    className={currentPage === 1 ? "pointer-events-none opacity-50 text-zinc-500" : "text-zinc-300 hover:bg-zinc-800 hover:text-white"}
-                                />
-                            </PaginationItem>
-
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                <PaginationItem key={page}>
-                                    <PaginationLink
-                                        href="#"
-                                        isActive={page === currentPage}
-                                        onClick={(e) => { e.preventDefault(); handlePageChange(page); }}
-                                        className={page === currentPage ? "bg-zinc-800 text-white border-zinc-700" : "text-zinc-300 hover:bg-zinc-800 hover:text-white"}
-                                    >
-                                        {page}
-                                    </PaginationLink>
-                                </PaginationItem>
-                            ))}
-
-                            <PaginationItem>
-                                <PaginationNext
-                                    href="#"
-                                    onClick={(e) => { e.preventDefault(); handlePageChange(currentPage + 1); }}
-                                    className={currentPage === totalPages ? "pointer-events-none opacity-50 text-zinc-500" : "text-zinc-300 hover:bg-zinc-800 hover:text-white"}
-                                />
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
-                )}
             </Card>
         </div>
     );
