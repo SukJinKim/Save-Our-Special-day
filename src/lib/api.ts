@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { toast } from 'sonner';
+import { toast } from "sonner";
 
 const baseURL = import.meta.env.VITE_API_URL || '/api/v1';
 
@@ -31,7 +31,7 @@ api.interceptors.response.use(
     },
     (error) => {
         if (error.response) {
-            const { status } = error.response;
+            const { status, data } = error.response;
             if (status === 401) {
                 // Token expired or invalid
                 localStorage.removeItem('accessToken');
@@ -39,43 +39,18 @@ api.interceptors.response.use(
                     window.location.href = '/signin';
                 }
                 toast.error('로그인이 만료되었습니다. 다시 로그인해주세요.');
+            } else if (data?.detail) {
+                console.log(data.detail)
+                toast.error(data.detail);
             } else if (status >= 500) {
                 toast.error('일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
             }
+        } else {
+            toast.error('서버와 연결할 수 없습니다.');
         }
         return Promise.reject(error);
     }
 );
 
-export interface GameRecordResponse {
-    success: boolean;
-    rank: number;
-}
 
-export const recordGame = async (clearTimeMs: number): Promise<GameRecordResponse> => {
-    const response = await api.post<GameRecordResponse>('/games/record', { clearTimeMs });
-    return response.data;
-};
-
-export interface RankItem {
-    rank: number;
-    name: string;
-    record: string; // "MM:SS.ms" or similar string format from server, or we format it. PRD says string.
-    userId: string;
-}
-
-export interface MyRankResponse {
-    rank: number;
-    record: string;
-}
-
-export const getRankings = async (limit: number = 10): Promise<RankItem[]> => {
-    const response = await api.get<RankItem[]>('/ranks', { params: { limit } });
-    return response.data;
-};
-
-export const getMyRank = async (): Promise<MyRankResponse> => {
-    const response = await api.get<MyRankResponse>('/ranks/my');
-    return response.data;
-};
 

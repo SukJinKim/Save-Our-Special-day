@@ -10,10 +10,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import gameGuideIntro from '@/assets/images/game_guide_intro.png';
-import gameGuideRules from '@/assets/images/game_guide_rules.png';
-import gameGuideRanking from '@/assets/images/game_guide_ranking.png';
-import gameGuideReady from '@/assets/images/game_guide_ready.png';
+import gameGuideIntro from '@/assets/images/game_guide_intro.webp';
+import gameGuideRules from '@/assets/images/game_guide_rules.webp';
+import gameGuideRanking from '@/assets/images/game_guide_ranking.webp';
+import gameGuideReady from '@/assets/images/game_guide_ready.webp';
 import { useNavigate } from 'react-router-dom';
 
 interface GameGuideProps {

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { Skeleton } from "@/components/ui/skeleton";
-import gameSuccess from '@/assets/images/game_success.png';
+import gameSuccess from '@/assets/images/game_success.webp';
 import { RotateCcw, Trophy } from 'lucide-react';
 
 const SuccessDialogImage = () => {
@@ -67,21 +67,23 @@ export const SuccessDialog: React.FC<SuccessDialogProps> = ({
                         덕분에 엉망이 될 뻔한 결혼 사진을 되살렸어!<br />
                         우리의 소중한 추억을 지켜줘서 정말 고마워.
                     </DialogDescription>
-                    <div className="bg-zinc-800/50 px-6 py-3 rounded-lg border border-zinc-700">
-                        <p className="text-zinc-400 text-sm mb-1">기록</p>
-                        <p className="text-2xl font-bold text-green-400 font-mono">{record}초</p>
+                    <div className="bg-zinc-800/50 rounded-lg border border-zinc-700 w-full flex flex-row divide-x divide-zinc-700">
+                        {isRankLoading ? (
+                            <div className="flex-1 py-4 flex flex-col items-center justify-center">
+                                <Skeleton className="h-4 w-16 mb-2" />
+                                <Skeleton className="h-9 w-24" />
+                            </div>
+                        ) : rank && (
+                            <div className="flex-1 py-4 flex flex-col items-center justify-center">
+                                <p className="text-zinc-400 text-sm mb-1">현재 순위</p>
+                                <p className="text-3xl font-black text-yellow-400 drop-shadow-lg">{rank}위</p>
+                            </div>
+                        )}
+                        <div className="flex-1 py-4 flex flex-col items-center justify-center">
+                            <p className="text-zinc-400 text-sm mb-1">기록</p>
+                            <p className="text-2xl font-bold text-green-400 font-mono">{record}초</p>
+                        </div>
                     </div>
-                    {isRankLoading ? (
-                        <div className="text-center space-y-1">
-                            <Skeleton className="h-4 w-16 mx-auto" />
-                            <Skeleton className="h-10 w-24 mx-auto" />
-                        </div>
-                    ) : rank && (
-                        <div className="text-center animate-bounce">
-                            <p className="text-zinc-400 text-sm">현재 순위</p>
-                            <p className="text-3xl md:text-4xl font-black text-yellow-400 drop-shadow-lg">{rank}위</p>
-                        </div>
-                    )}
                 </div>
                 <DialogFooter className="flex-row sm:justify-center gap-3">
                     <Button
@@ -99,7 +101,7 @@ export const SuccessDialog: React.FC<SuccessDialogProps> = ({
                         className="flex-1 bg-white text-black hover:bg-zinc-200 gap-2 font-bold py-6"
                     >
                         <Trophy className="w-4 h-4" />
-                        명예의 전당 확인하기
+                        실시간 랭킹 확인하기
                     </Button>
                 </DialogFooter>
             </DialogContent>

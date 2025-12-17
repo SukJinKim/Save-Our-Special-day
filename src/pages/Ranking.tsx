@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Crown, Medal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { socket } from '@/lib/socket';
-import { getRankings, getMyRank } from '@/lib/api';
-import type { RankItem } from '@/lib/api';
+import { getRankings, getMyRank } from '@/lib/ranking';
+import type { RankItem } from '@/lib/ranking';
 import { useAuthStore } from '@/lib/store/useAuthStore';
 import {
     Table,
@@ -124,7 +124,7 @@ export const Ranking: React.FC = () => {
         <div className="w-full flex-1 flex flex-col items-center justify-center px-4 py-2 md:p-6">
             <Card className="bg-zinc-900/80 border-zinc-800 p-4 md:p-6 backdrop-blur-sm max-w-2xl w-full">
                 <div className="text-center mb-4 md:mb-8 relative">
-                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">명예의 전당</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">실시간 랭킹</h1>
                     <p className="text-sm md:text-base text-zinc-400">저희의 결혼식을 완성해주셔서 감사합니다.</p>
                 </div>
 
@@ -170,9 +170,6 @@ export const Ranking: React.FC = () => {
 
                                         // Highlight my rank logic
                                         const isMyRank = rank === myRank;
-                                        if (isMyRank) {
-                                            rowStyles = "border-yellow-500/50 bg-yellow-500/20 hover:bg-yellow-500/30 ring-1 ring-yellow-500/50 relative z-10";
-                                        }
 
                                         return (
                                             <motion.tr
@@ -203,8 +200,14 @@ export const Ranking: React.FC = () => {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-zinc-300">
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="relative inline-flex items-center">
                                                         {maskName(item.name)}
+                                                        {isMyRank && (
+                                                            <span className="absolute -top-1 -right-2 flex h-2 w-2">
+                                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-right font-mono text-green-400">

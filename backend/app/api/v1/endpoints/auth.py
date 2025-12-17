@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.db.session import get_db
@@ -23,6 +23,11 @@ async def signin(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
         db.add(user)
         await db.commit()
         await db.refresh(user)
+    elif user.name != user_in.name:
+        raise HTTPException(
+            status_code=400,
+            detail="이미 존재하는 사용자입니다. 다시 확인해주세요."
+        )
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(

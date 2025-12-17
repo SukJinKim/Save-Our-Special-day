@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import LightRays from '@/components/LightRays';
+import { Toaster } from "@/components/ui/sonner";
 
 export const MainLayout: React.FC = () => {
     return (
@@ -31,6 +32,7 @@ export const MainLayout: React.FC = () => {
             <div className="relative z-10">
                 <Footer />
             </div>
+            <Toaster position='top-right' />
         </div>
     );
 };

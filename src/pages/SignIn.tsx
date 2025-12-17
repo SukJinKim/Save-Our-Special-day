@@ -83,14 +83,6 @@ export const SignIn: React.FC = () => {
             navigate('/play');
         } catch (error: any) {
             console.error('Login failed:', error);
-            // Error handling is mostly done in interceptor, but we can catch specific cases or fallback
-            if (error.response?.data?.message) {
-                toast.error(error.response.data.message);
-            } else if (!error.response) {
-                toast.error('서버와 연결할 수 없습니다.');
-            } else {
-                toast.error('로그인에 실패했습니다.');
-            }
         }
     };
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Shuffle, RotateCcw, Lightbulb } from 'lucide-react';
-import { recordGame } from '@/lib/api';
+import { recordGame } from '@/lib/game';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -44,7 +44,7 @@ export const Play: React.FC = () => {
     const endTimeRef = useRef<number>(0);
     const navigate = useNavigate();
 
-    const shufflePuzzle = () => {
+    const resetGame = () => {
         const shuffled = [...DEFAULT_ITEMS];
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -61,6 +61,16 @@ export const Play: React.FC = () => {
         setIsHintActive(false);
         setRank(undefined);
         setIsSubmitting(false);
+    };
+
+    const shufflePuzzle = () => {
+        const shuffled = [...DEFAULT_ITEMS];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        setShuffledItems(shuffled);
+        setSelectedIndex(null);
     };
 
     const { isAuthenticated } = useAuthStore();
@@ -86,7 +96,7 @@ export const Play: React.FC = () => {
             setIsImageLoaded(true);
         };
 
-        shufflePuzzle();
+        resetGame();
 
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
@@ -329,13 +339,23 @@ export const Play: React.FC = () => {
                             Hint
                         </Button>
                     )}
-                    <Button
-                        onClick={shufflePuzzle}
-                        className={`${isGameOver ? '' : 'flex-1'} bg-white text-black hover:bg-zinc-200 gap-2 font-bold px-6 py-4 md:py-2 h-auto md:h-10`}
-                    >
-                        {isGameOver ? <RotateCcw className="w-4 h-4" /> : <Shuffle className="w-4 h-4" />}
-                        {isGameOver ? '다시 시작' : 'Shuffle'}
-                    </Button>
+                    {isGameOver ? (
+                        <Button
+                            onClick={resetGame}
+                            className="bg-zinc-800 text-white hover:bg-zinc-700 gap-2 font-bold px-6 py-4 md:py-2 h-auto md:h-10"
+                        >
+                            <RotateCcw className="w-4 h-4" />
+                            다시 시작
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={shufflePuzzle}
+                            className="flex-1 bg-white text-black hover:bg-zinc-200 gap-2 font-bold px-6 py-4 md:py-2 h-auto md:h-10"
+                        >
+                            <Shuffle className="w-4 h-4" />
+                            Shuffle
+                        </Button>
+                    )}
                 </div>
             </Card>
 
@@ -346,7 +366,7 @@ export const Play: React.FC = () => {
                 rank={rank}
                 isRankLoading={isSubmitting}
                 onNavigateRanking={() => navigate('/ranking')}
-                onRetry={shufflePuzzle}
+                onRetry={resetGame}
             />
 
             {/* Hint Dialog */}

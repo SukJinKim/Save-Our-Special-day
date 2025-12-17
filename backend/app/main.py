@@ -4,7 +4,27 @@ from app.api.v1.api import api_router
 from app.core.socket import sio
 import socketio
 
-app = FastAPI(title=settings.PROJECT_NAME, openapi_url=f"{settings.SOS_API_PREFIX}/openapi.json")
+from contextlib import asynccontextmanager
+import os
+from app.db.base import Base
+from app.db.session import engine
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Ensure data directory exists
+    os.makedirs(os.path.dirname(settings.DATABASE_URL.replace("sqlite+aiosqlite:///", "")), exist_ok=True)
+    
+    # Create tables if they don't exist
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    
+    yield
+    
+app = FastAPI(
+    title=settings.PROJECT_NAME, 
+    openapi_url=f"{settings.SOS_API_PREFIX}/openapi.json",
+    lifespan=lifespan
+)
 
 # Include API router
 app.include_router(api_router, prefix=settings.SOS_API_PREFIX)
