@@ -12,8 +12,13 @@ export interface MyRankResponse {
     record: string;
 }
 
-export const getRankings = async (limit: number = 10): Promise<RankItem[]> => {
-    const response = await api.get<RankItem[]>('/ranks', { params: { limit } });
+export interface RankingListResponse {
+    items: RankItem[];
+    total: number;
+}
+
+export const getRankings = async (skip: number = 0, limit: number = 10): Promise<RankingListResponse> => {
+    const response = await api.get<RankingListResponse>('/ranks', { params: { skip, limit } });
     return response.data;
 };
 

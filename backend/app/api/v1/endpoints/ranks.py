@@ -46,30 +46,37 @@ async def get_my_rank(
     }
 
 from typing import List
-from app.schemas.ranking import RankingItem
+from app.schemas.ranking import RankingItem, RankingListResponse
 from app.utils.masking import mask_name
 
-@router.get("", response_model=List[RankingItem])
+@router.get("", response_model=RankingListResponse)
 async def get_ranks(
+    skip: int = 0,
     limit: int = 10,
     db: AsyncSession = Depends(get_db)
 ):
-    # 1. Get best record per user
+    # 1. Base subquery for user best records
     subquery = (
         select(
             GameRecord.user_id,
             func.min(GameRecord.clear_time_ms).label("best_time"),
-            func.max(GameRecord.played_at).label("last_played_at") # Use max to just pick one date
+            func.max(GameRecord.played_at).label("last_played_at")
         )
         .group_by(GameRecord.user_id)
         .subquery()
     )
 
-    # 2. Join with User to get names, Order by best_time ASC
+    # 2. Get total count
+    count_query = select(func.count()).select_from(subquery)
+    count_result = await db.execute(count_query)
+    total = count_result.scalar()
+
+    # 3. Get paginated results
     query = (
         select(subquery.c.best_time, subquery.c.last_played_at, User.name)
         .join(User, subquery.c.user_id == User.id)
         .order_by(subquery.c.best_time.asc())
+        .offset(skip)
         .limit(limit)
     )
 
@@ -79,11 +86,14 @@ async def get_ranks(
     ranking_list = []
     for index, row in enumerate(rows):
         ranking_list.append({
-            "rank": index + 1,
+            "rank": skip + index + 1,
             "name": mask_name(row.name),
             "record": f"{row.best_time / 1000:.2f}",
             "date": row.last_played_at.strftime("%Y-%m-%d") if row.last_played_at else ""
         })
 
-    return ranking_list
+    return {
+        "items": ranking_list,
+        "total": total
+    }
 

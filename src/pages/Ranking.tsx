@@ -30,54 +30,59 @@ const ITEMS_PER_PAGE = 10;
 export const Ranking: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [rankingData, setRankingData] = useState<RankItem[]>([]);
+    const [totalItems, setTotalItems] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [myRank, setMyRank] = useState<number | null>(null);
     const { isAuthenticated } = useAuthStore();
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-    const fetchRankings = async () => {
+    const fetchRankings = async (page: number) => {
         setIsLoading(true);
         try {
-            let limit = 10;
-            let targetPage = 1;
-
-            if (isAuthenticated()) {
-                try {
-                    const myRankData = await getMyRank();
-                    setMyRank(myRankData.rank);
-
-                    // Calculate required limit to include my rank
-                    // If rank is 25, we need at least 30 items (page 3)
-                    // If rank is 5, we need 10 items (page 1)
-                    if (myRankData.rank > 10) {
-                        limit = Math.ceil(myRankData.rank / 10) * 10;
-                        targetPage = Math.ceil(myRankData.rank / 10);
-                    }
-                } catch (e) {
-                    console.error("Failed to fetch my rank", e);
-                    // Fallback to top 10 if my rank fetch fails
-                }
-            }
-
-            const data = await getRankings(limit);
-            setRankingData(data);
-
-            if (isAuthenticated() && targetPage > 1 && !isLoading) {
-                // Only set page if initial load or specific user action, 
-                // but here we might want to avoid jumping pages on real-time update unless necessary.
-                // For now, let's keep it simple: initial load sets page.
-                setCurrentPage(targetPage);
-            }
+            const skip = (page - 1) * ITEMS_PER_PAGE;
+            const data = await getRankings(skip, ITEMS_PER_PAGE);
+            setRankingData(data.items);
+            setTotalItems(data.total);
         } catch (error) {
             console.error('Failed to fetch rankings:', error);
-            // toast.error('랭킹 정보를 불러오는데 실패했습니다.'); // Suppress toast on frequent updates if any
         } finally {
             setIsLoading(false);
         }
     };
 
+    // Initial load handling
     useEffect(() => {
-        fetchRankings();
+        const initialize = async () => {
+            let targetPage = 1;
+            if (isAuthenticated()) {
+                try {
+                    const myRankData = await getMyRank();
+                    setMyRank(myRankData.rank);
+                    if (myRankData.rank > 0) {
+                        targetPage = Math.ceil(myRankData.rank / ITEMS_PER_PAGE);
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch my rank", e);
+                }
+            }
+            setCurrentPage(targetPage);
+            await fetchRankings(targetPage);
+            setIsInitialLoad(false);
+        };
 
+        if (isInitialLoad) {
+            initialize();
+        }
+    }, [isAuthenticated, isInitialLoad]);
+
+    // Fetch on page change (skip initial load to avoid double fetch)
+    useEffect(() => {
+        if (!isInitialLoad) {
+            fetchRankings(currentPage);
+        }
+    }, [currentPage, isInitialLoad]);
+
+    useEffect(() => {
         // Connect to Socket.IO
         if (!socket.connected) {
             socket.on('connect', () => {
@@ -93,11 +98,8 @@ export const Ranking: React.FC = () => {
 
         const handleRankingUpdate = (data: any) => {
             console.log('Ranking update received:', data);
-            if (Array.isArray(data)) {
-                setRankingData(data);
-            } else {
-                fetchRankings();
-            }
+            // Refresh current page
+            fetchRankings(currentPage);
         };
 
         socket.on('ranking_update', handleRankingUpdate);
@@ -105,12 +107,12 @@ export const Ranking: React.FC = () => {
         return () => {
             socket.off('ranking_update', handleRankingUpdate);
         };
-    }, []);
+    }, [currentPage]);
 
 
-    const totalPages = Math.ceil(rankingData.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const currentData = rankingData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    const currentData = rankingData;
 
     const maskName = (name: string) => {
         if (!name) return '***';
