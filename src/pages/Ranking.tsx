@@ -23,8 +23,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
-import { toast } from 'sonner';
-
+import { showToast } from '@/lib/customToast';
 const ITEMS_PER_PAGE = 10;
 
 
@@ -34,7 +33,7 @@ export const Ranking: React.FC = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [myRank, setMyRank] = useState<number | null>(null);
-    const { isAuthenticated } = useAuthStore();
+    const user = useAuthStore(state => state.user);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     const fetchRankings = async (page: number) => {
@@ -54,8 +53,9 @@ export const Ranking: React.FC = () => {
     // Initial load handling
     useEffect(() => {
         const initialize = async () => {
+            console.log("Initializing ranking page, user:", user?.id);
             let targetPage = 1;
-            if (isAuthenticated()) {
+            if (user) {
                 try {
                     const myRankData = await getMyRank();
                     setMyRank(myRankData.rank);
@@ -74,7 +74,7 @@ export const Ranking: React.FC = () => {
         if (isInitialLoad) {
             initialize();
         }
-    }, [isAuthenticated, isInitialLoad]);
+    }, [user, isInitialLoad]);
 
     // Fetch on page change (skip initial load to avoid double fetch)
     useEffect(() => {
@@ -84,32 +84,42 @@ export const Ranking: React.FC = () => {
     }, [currentPage, isInitialLoad]);
 
     useEffect(() => {
-        // Connect to Socket.IO
+        console.log('Setting up socket listeners for /ranking namespace');
+
+        // Manual connect since autoConnect might have happened early
         if (!socket.connected) {
             socket.on('connect', () => {
-                console.log('Socket connected:', socket.id);
+                console.log('Socket connected to /ranking namespace:', socket.id);
             });
-
             socket.on('connect_error', (err) => {
-                console.log('Socket connection error:', err);
+                console.error('Socket connection error:', err);
             });
-
             socket.connect();
         }
 
-        const handleRankingUpdate = (data: any) => {
-            console.log('Ranking update received:', data);
-            toast.success('랭킹이 업데이트되었습니다!');
-            // Refresh current page
+        const handleRankingUpdate = async (data: any) => {
+            console.log('Ranking update received via Socket.IO:', data);
+            showToast.success('랭킹이 실시간 업데이트되었습니다!');
+
+            // Re-fetch everything
             fetchRankings(currentPage);
+            if (user) {
+                try {
+                    const myRankData = await getMyRank();
+                    setMyRank(myRankData.rank);
+                } catch (e) {
+                    console.error("Failed to update my rank on socket signal", e);
+                }
+            }
         };
 
         socket.on('ranking_update', handleRankingUpdate);
 
         return () => {
+            console.log('Cleaning up socket listeners');
             socket.off('ranking_update', handleRankingUpdate);
         };
-    }, [currentPage]);
+    }, [currentPage, user]);
 
 
     const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);

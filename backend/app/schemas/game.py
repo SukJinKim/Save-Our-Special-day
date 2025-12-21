@@ -12,3 +12,12 @@ class MyRankResponse(BaseModel):
     record: str  # Formatted as "45.20"
     
     model_config = ConfigDict(from_attributes=True)
+
+class GameHistoryItem(BaseModel):
+    rank: int
+    record: str
+    date: str
+
+class GameHistoryResponse(BaseModel):
+    items: list[GameHistoryItem]
+    total: int

@@ -6,13 +6,14 @@ from app.db.session import get_db
 from app.models.user import User
 from app.models.game import GameRecord
 from app.schemas.game import MyRankResponse
-from app.api.v1.endpoints.games import get_current_user
+from app.schemas.game import MyRankResponse
+from app.api import deps
 
 router = APIRouter()
 
 @router.get("/my", response_model=MyRankResponse)
 async def get_my_rank(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(deps.get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     # 1. Get my best record
@@ -73,7 +74,7 @@ async def get_ranks(
 
     # 3. Get paginated results
     query = (
-        select(subquery.c.best_time, subquery.c.last_played_at, User.name)
+        select(subquery.c.user_id, subquery.c.best_time, subquery.c.last_played_at, User.name)
         .join(User, subquery.c.user_id == User.id)
         .order_by(subquery.c.best_time.asc())
         .offset(skip)
@@ -87,6 +88,7 @@ async def get_ranks(
     for index, row in enumerate(rows):
         ranking_list.append({
             "rank": skip + index + 1,
+            "userId": str(row.user_id),
             "name": mask_name(row.name),
             "record": f"{row.best_time / 1000:.2f}",
             "date": row.last_played_at.strftime("%Y-%m-%d") if row.last_played_at else ""

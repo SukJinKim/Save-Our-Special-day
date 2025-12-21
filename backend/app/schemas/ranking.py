@@ -3,6 +3,7 @@ from typing import List
 
 class RankingItem(BaseModel):
     rank: int
+    userId: str
     name: str
     record: str
     date: str

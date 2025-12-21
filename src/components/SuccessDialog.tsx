@@ -10,7 +10,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Skeleton } from "@/components/ui/skeleton";
 import gameSuccess from '@/assets/images/game_success.webp';
-import { RotateCcw, Trophy } from 'lucide-react';
+import { RotateCcw, Trophy, Sparkles } from 'lucide-react';
+import { HiddenMessageDialog } from '@/components/HiddenMessageDialog';
 
 const SuccessDialogImage = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -49,6 +50,8 @@ export const SuccessDialog: React.FC<SuccessDialogProps> = ({
     onNavigateRanking,
     onRetry
 }) => {
+    const [showHiddenDialog, setShowHiddenDialog] = useState(false);
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
@@ -85,25 +88,40 @@ export const SuccessDialog: React.FC<SuccessDialogProps> = ({
                         </div>
                     </div>
                 </div>
-                <DialogFooter className="flex-row sm:justify-center gap-3">
-                    <Button
-                        onClick={() => {
-                            onRetry();
-                            onOpenChange(false);
-                        }}
-                        className="flex-1 bg-zinc-800 text-white hover:bg-zinc-700 gap-2 font-bold py-6"
-                    >
-                        <RotateCcw className="w-4 h-4" />
-                        재도전하기
-                    </Button>
-                    <Button
-                        onClick={onNavigateRanking}
-                        className="flex-1 bg-white text-black hover:bg-zinc-200 gap-2 font-bold py-6"
-                    >
-                        <Trophy className="w-4 h-4" />
-                        실시간 랭킹 확인하기
-                    </Button>
+                <DialogFooter className="flex flex-col gap-3 sm:justify-center">
+                    <div className="flex flex-row gap-3 w-full">
+                        <Button
+                            onClick={() => {
+                                onRetry();
+                                onOpenChange(false);
+                            }}
+                            className="flex-1 bg-zinc-800 text-white hover:bg-zinc-700 gap-2 font-bold py-6"
+                        >
+                            <RotateCcw className="w-4 h-4" />
+                            재도전하기
+                        </Button>
+                        <Button
+                            onClick={onNavigateRanking}
+                            className="flex-1 bg-white text-black hover:bg-zinc-200 gap-2 font-bold py-6"
+                        >
+                            <Trophy className="w-4 h-4" />
+                            실시간 랭킹 확인하기
+                        </Button>
+                    </div>
+                    {rank === 1 && (
+                        <Button
+                            onClick={() => setShowHiddenDialog(true)}
+                            className="w-full bg-yellow-400 text-black hover:bg-yellow-500 gap-2 font-bold py-6 animate-pulse"
+                        >
+                            <Sparkles className="w-4 h-4" />
+                            히든 메시지 확인
+                        </Button>
+                    )}
                 </DialogFooter>
+                <HiddenMessageDialog
+                    open={showHiddenDialog}
+                    onOpenChange={setShowHiddenDialog}
+                />
             </DialogContent>
         </Dialog>
     );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -29,11 +29,13 @@ type SignInFormValues = z.infer<typeof signInSchema>;
 
 import { signIn } from '@/lib/auth';
 import { useAuthStore } from '@/lib/store/useAuthStore';
-import { toast } from 'sonner';
+import { showToast } from '@/lib/customToast';
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const SignIn: React.FC = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const redirect = searchParams.get('redirect') || '/play';
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [formData, setFormData] = useState<SignInFormValues | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -79,8 +81,8 @@ export const SignIn: React.FC = () => {
             console.log("signIn success:", user);
             setAuth(user, accessToken);
             setIsDrawerOpen(false);
-            toast.success(`환영합니다, ${user.name}님!`);
-            navigate('/play');
+            showToast.success(`환영합니다, ${user.name}님!`, '로그인 성공');
+            navigate(redirect);
         } catch (error: any) {
             console.error('Login failed:', error);
         }

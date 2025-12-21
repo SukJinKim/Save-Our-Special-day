@@ -1,11 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Shuffle, RotateCcw, Lightbulb } from 'lucide-react';
-import { recordGame } from '@/lib/game';
-import { toast } from 'sonner';
+import { recordGame, getPuzzleImage } from '@/lib/game';
+import { showToast } from '@/lib/customToast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import puzzle1 from '@/assets/puzzles/puzzle1.png';
-import puzzle2 from '@/assets/puzzles/puzzle2.png';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,7 +11,8 @@ import { SuccessDialog } from '@/components/SuccessDialog';
 import { HintDialog } from '@/components/HintDialog';
 import { useAuthStore } from '@/lib/store/useAuthStore';
 
-const PUZZLE_IMAGES = [puzzle1, puzzle2];
+
+
 
 const GRID_SIZE = 4;
 const DEFAULT_ITEMS = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => {
@@ -27,6 +26,7 @@ const DEFAULT_ITEMS = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => {
 
 export const Play: React.FC = () => {
     const [image, setImage] = useState<string>('');
+    const [aspectRatio, setAspectRatio] = useState<number>(2 / 3); // Default to 2/3 (portrait)
     const [shuffledItems, setShuffledItems] = useState<typeof DEFAULT_ITEMS>([]);
     const [selectedindex, setSelectedIndex] = useState<number | null>(null);
     const [isGlowing, setIsGlowing] = useState(false);
@@ -77,25 +77,44 @@ export const Play: React.FC = () => {
 
     useEffect(() => {
         if (!isAuthenticated()) {
-            toast.error('로그인이 필요한 서비스입니다.');
-            navigate('/signin');
+            showToast.warning('로그인이 필요한 서비스입니다.', '로그인 필요');
+            navigate('/signin?redirect=/play');
             return;
         }
         setIsLoading(false);
     }, [isAuthenticated, navigate]);
 
     useEffect(() => {
-        // Select random image on mount
-        const randomImage = PUZZLE_IMAGES[Math.floor(Math.random() * PUZZLE_IMAGES.length)];
-        setImage(randomImage);
+        const fetchImage = async () => {
+            try {
+                const response = await getPuzzleImage();
+                const imageUrl = response.url;
+                setImage(imageUrl);
 
-        // Preload image
-        const img = new Image();
-        img.src = randomImage;
-        img.onload = () => {
-            setIsImageLoaded(true);
+                const img = new Image();
+                img.crossOrigin = "anonymous"; // S3 CORS 설정 활용
+
+                img.onload = () => {
+                    console.log("Image loaded successfully:", imageUrl);
+                    setAspectRatio(img.width / img.height);
+                    setIsImageLoaded(true);
+                };
+
+                img.onerror = (e) => {
+                    console.error("Image failed to load:", e);
+                    showToast.error("이미지 로드에 실패했습니다.");
+                };
+
+                img.src = imageUrl;
+            } catch (error) {
+                console.error("Failed to fetch puzzle image:", error);
+                showToast.error("이미지를 불러오는데 실패했습니다.");
+            }
         };
 
+        if (isAuthenticated()) {
+            fetchImage();
+        }
         resetGame();
 
         return () => {
@@ -171,9 +190,9 @@ export const Play: React.FC = () => {
                 } catch (error: any) {
                     console.error('Failed to record game:', error);
                     if (error.response?.status === 400) {
-                        toast.error(error.response.data?.detail || '비정상적인 기록입니다.');
+                        showToast.error(error.response.data?.detail || '비정상적인 기록입니다.');
                     } else {
-                        toast.error('기록 저장에 실패했습니다.');
+                        showToast.error('기록 저장에 실패했습니다.');
                     }
                 } finally {
                     setIsSubmitting(false);
@@ -285,7 +304,7 @@ export const Play: React.FC = () => {
                 </div>
 
                 {isLoading || !isImageLoaded ? (
-                    <div className="grid grid-cols-4 gap-0.5 w-full bg-zinc-950 p-1 rounded-lg border border-zinc-800 mb-4 md:mb-6" style={{ aspectRatio: '1/1' }}>
+                    <div className="grid grid-cols-4 gap-0.5 w-full bg-zinc-950 p-1 rounded-lg border border-zinc-800 mb-4 md:mb-6" style={{ aspectRatio: aspectRatio }}>
                         {Array.from({ length: 16 }).map((_, i) => (
                             <Skeleton key={i} className="w-full h-full rounded-sm" />
                         ))}
@@ -294,7 +313,7 @@ export const Play: React.FC = () => {
                     <div
                         className={`grid grid-cols-4 gap-0.5 w-full bg-zinc-950 p-1 rounded-lg border border-zinc-800 mb-4 md:mb-6 relative transition-all duration-1000 ${isGlowing ? 'shadow-[0_0_50px_20px_rgba(255,255,255,0.5)] z-20 scale-105 border-white' : ''
                             }`}
-                        style={{ aspectRatio: '1/1' }}
+                        style={{ aspectRatio: aspectRatio }}
                     >
                         {isGameOver && !isWon && !isGlowing && (
                             <div className="absolute inset-0 z-10 bg-black/70 flex flex-col items-center justify-center rounded-lg backdrop-blur-sm">
@@ -315,7 +334,7 @@ export const Play: React.FC = () => {
                                 <div
                                     className="w-full h-full"
                                     style={{
-                                        backgroundImage: `url(${image})`,
+                                        backgroundImage: `url("${image}")`,
                                         backgroundSize: '400% 400%',
                                         backgroundPosition: item.pos
                                     }}

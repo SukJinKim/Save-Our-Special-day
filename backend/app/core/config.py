@@ -12,8 +12,17 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./data/sos.db"
 
+    # AWS S3
+    AWS_ACCESS_KEY_ID: str = ""
+    AWS_SECRET_ACCESS_KEY: str = ""
+    AWS_REGION: str = "ap-northeast-2"
+    S3_BUCKET_NAME: str = ""
+
     # CORS
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+    
+    # Hidden Message (Stored as JSON list string in env)
+    HIDDEN_MESSAGES: List[str] = []
 
     @field_validator("BACKEND_CORS_ORIGINS", mode='before')
     @classmethod
@@ -23,6 +32,17 @@ class Settings(BaseSettings):
         elif isinstance(v, (list, str)):
             return v
         raise ValueError(v)
+
+    @field_validator("HIDDEN_MESSAGES", mode='before')
+    @classmethod
+    def assemble_hidden_messages(cls, v: Union[str, List[str]]) -> List[str]:
+        if isinstance(v, str):
+            try:
+                import json
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return [v]
+        return v
 
     model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
 

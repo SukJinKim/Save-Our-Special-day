@@ -11,8 +11,9 @@ from app.db.session import engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure data directory exists
-    os.makedirs(os.path.dirname(settings.DATABASE_URL.replace("sqlite+aiosqlite:///", "")), exist_ok=True)
+    # Ensure data directory exists (only for SQLite)
+    if settings.DATABASE_URL.startswith("sqlite"):
+        os.makedirs(os.path.dirname(settings.DATABASE_URL.replace("sqlite+aiosqlite:///", "")), exist_ok=True)
     
     # Create tables if they don't exist
     async with engine.begin() as conn:

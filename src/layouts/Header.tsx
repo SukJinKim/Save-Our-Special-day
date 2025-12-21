@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { SOSLogo } from '@/components/SOSLogo';
 import { useAuthStore } from '@/lib/store/useAuthStore';
 
@@ -8,17 +8,19 @@ import {
     SheetContent,
     SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, Trophy, LogOut, ChevronRight } from 'lucide-react';
+import { Menu, Trophy, LogOut, ChevronRight, ClipboardList } from 'lucide-react';
 import Avatar from "boring-avatars";
 
 export const Header: React.FC = () => {
     const { user, clearAuth } = useAuthStore();
+    const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const isLoggedIn = !!user;
 
     const handleLogout = () => {
         clearAuth();
         setOpen(false);
+        navigate('/');
     };
 
     return (
@@ -54,7 +56,7 @@ export const Header: React.FC = () => {
                                 </div>
                             ) : (
                                 <Link
-                                    to="/signin"
+                                    to="/signin?redirect=/"
                                     className="flex items-center gap-4 group cursor-pointer"
                                     onClick={() => setOpen(false)}
                                 >
@@ -77,6 +79,18 @@ export const Header: React.FC = () => {
 
                         {/* Menu Items */}
                         <nav className="flex flex-col gap-2 flex-1">
+                            {user && (
+                                <Link
+                                    to="/my-records"
+                                    className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-all text-zinc-200 hover:text-white group"
+                                    onClick={() => setOpen(false)}
+                                >
+                                    <div className="bg-zinc-800/50 p-2 rounded-lg group-hover:bg-zinc-800 transition-colors">
+                                        <ClipboardList className="w-5 h-5" />
+                                    </div>
+                                    <span className="font-medium">나의 기록</span>
+                                </Link>
+                            )}
                             <Link
                                 to="/ranking"
                                 className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-all text-zinc-200 hover:text-white group"

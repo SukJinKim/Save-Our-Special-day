@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { toast } from "sonner";
+import { showToast } from '@/lib/customToast';
 
 const baseURL = import.meta.env.VITE_API_URL || '/api/v1';
 
@@ -34,19 +34,22 @@ api.interceptors.response.use(
             const { status, data } = error.response;
             if (status === 401) {
                 // Token expired or invalid
+                const hadToken = !!localStorage.getItem('accessToken');
                 localStorage.removeItem('accessToken');
                 if (window.location.pathname !== '/signin') {
                     window.location.href = '/signin';
                 }
-                toast.error('로그인이 만료되었습니다. 다시 로그인해주세요.');
+                if (hadToken) {
+                    showToast.error('로그인이 만료되었습니다. 다시 로그인해주세요.');
+                }
             } else if (data?.detail) {
                 console.log(data.detail)
-                toast.error(data.detail);
+                showToast.error(data.detail);
             } else if (status >= 500) {
-                toast.error('일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+                showToast.error('일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', '서버 오류');
             }
         } else {
-            toast.error('서버와 연결할 수 없습니다.');
+            showToast.error('서버와 연결할 수 없습니다.', '연결 실패');
         }
         return Promise.reject(error);
     }

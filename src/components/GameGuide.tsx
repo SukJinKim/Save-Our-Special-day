@@ -42,7 +42,7 @@ export const GameGuide: React.FC<GameGuideProps> = ({ children }) => {
     const slides = [
         {
             title: "🧩 게임 소개",
-            description: "헉! 결혼식 시작 전인데\n우리 결혼 사진들이 모두 흩어졌어.\n\n퍼즐을 맞춰서 원래대로 돌려줘!",
+            description: "헉! 결혼식 시작 전인데\n포토 테이블에 놓을\n우리 결혼사진들이 모두 흩어졌어.\n\n퍼즐을 맞춰서 원래대로 돌려줘!",
             image: gameGuideIntro
         },
         {
@@ -58,7 +58,7 @@ export const GameGuide: React.FC<GameGuideProps> = ({ children }) => {
         },
         {
             title: "준비됐어?",
-            description: "지금 바로 도전해서\n우리의 소중한 결혼사진을 완성해줘!",
+            description: "지금 바로 도전해서\n우리의 소중한 결혼식을 완성해줘!",
             image: gameGuideReady,
             action: true
         }
