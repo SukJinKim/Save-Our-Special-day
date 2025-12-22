@@ -4,7 +4,7 @@ import { MainLayout } from '@/layouts/MainLayout';
 import { Home } from '@/pages/Home';
 import { SignIn } from '@/pages/SignIn';
 import { Play } from '@/pages/Play';
-import { Ranking } from '@/pages/Ranking';
+import { HallOfFame } from '@/pages/HallOfFame';
 import { MyRecords } from '@/pages/MyRecords';
 
 const AppRoutes: React.FC = () => {
@@ -14,7 +14,7 @@ const AppRoutes: React.FC = () => {
                 <Route index element={<Home />} />
                 <Route path="signin" element={<SignIn />} />
                 <Route path="play" element={<Play />} />
-                <Route path="ranking" element={<Ranking />} />
+                <Route path="hall-of-fame" element={<HallOfFame />} />
                 <Route path="my-records" element={<MyRecords />} />
             </Route>
         </Routes>

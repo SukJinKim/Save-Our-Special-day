@@ -15,34 +15,21 @@ import {
 } from "@/components/ui/table";
 import { Card } from '@/components/ui/card';
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
 import { showToast } from '@/lib/customToast';
-const ITEMS_PER_PAGE = 10;
 
-
-export const Ranking: React.FC = () => {
-    const [currentPage, setCurrentPage] = useState(1);
+export const HallOfFame: React.FC = () => {
     const [rankingData, setRankingData] = useState<RankItem[]>([]);
-    const [totalItems, setTotalItems] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [myRank, setMyRank] = useState<number | null>(null);
     const user = useAuthStore(state => state.user);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-    const fetchRankings = async (page: number) => {
+    const fetchRankings = async () => {
         setIsLoading(true);
         try {
-            const skip = (page - 1) * ITEMS_PER_PAGE;
-            const data = await getRankings(skip, ITEMS_PER_PAGE);
+            // Always fetch top 10 for Hall of Fame
+            const data = await getRankings(0, 10);
             setRankingData(data.items);
-            setTotalItems(data.total);
         } catch (error) {
             console.error('Failed to fetch rankings:', error);
         } finally {
@@ -53,21 +40,16 @@ export const Ranking: React.FC = () => {
     // Initial load handling
     useEffect(() => {
         const initialize = async () => {
-            console.log("Initializing ranking page, user:", user?.id);
-            let targetPage = 1;
+            console.log("Initializing Hall of Fame, user:", user?.id);
             if (user) {
                 try {
                     const myRankData = await getMyRank();
                     setMyRank(myRankData.rank);
-                    if (myRankData.rank > 0) {
-                        targetPage = Math.ceil(myRankData.rank / ITEMS_PER_PAGE);
-                    }
                 } catch (e) {
                     console.error("Failed to fetch my rank", e);
                 }
             }
-            setCurrentPage(targetPage);
-            await fetchRankings(targetPage);
+            await fetchRankings();
             setIsInitialLoad(false);
         };
 
@@ -76,15 +58,8 @@ export const Ranking: React.FC = () => {
         }
     }, [user, isInitialLoad]);
 
-    // Fetch on page change (skip initial load to avoid double fetch)
     useEffect(() => {
-        if (!isInitialLoad) {
-            fetchRankings(currentPage);
-        }
-    }, [currentPage, isInitialLoad]);
-
-    useEffect(() => {
-        console.log('Setting up socket listeners for /ranking namespace');
+        console.log('Setting up socket listeners for /ranking namespace (Hall of Fame)');
 
         // Manual connect since autoConnect might have happened early
         if (!socket.connected) {
@@ -99,10 +74,10 @@ export const Ranking: React.FC = () => {
 
         const handleRankingUpdate = async (data: any) => {
             console.log('Ranking update received via Socket.IO:', data);
-            showToast.success('랭킹이 실시간 업데이트되었습니다!');
+            showToast.success('명예의 전당이 업데이트되었습니다!');
 
             // Re-fetch everything
-            fetchRankings(currentPage);
+            fetchRankings();
             if (user) {
                 try {
                     const myRankData = await getMyRank();
@@ -119,12 +94,8 @@ export const Ranking: React.FC = () => {
             console.log('Cleaning up socket listeners');
             socket.off('ranking_update', handleRankingUpdate);
         };
-    }, [currentPage, user]);
+    }, [user]);
 
-
-    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const currentData = rankingData;
 
     const maskName = (name: string) => {
         if (!name) return '***';
@@ -137,8 +108,15 @@ export const Ranking: React.FC = () => {
     return (
         <div className="w-full flex-1 flex flex-col items-center justify-center px-4 py-2 md:p-6">
             <Card className="bg-zinc-900/80 border-zinc-800 p-4 md:p-6 backdrop-blur-sm max-w-2xl w-full">
-                <div className="text-center mb-4 md:mb-8 relative">
-                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">실시간 랭킹</h1>
+                <div className="text-center mb-4 md:mb-8 relative flex flex-col items-center">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 ring-1 ring-red-500/20 mb-2">
+                        <span className="relative flex h-1.5 w-1.5 md:h-2 md:w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-full w-full bg-red-500"></span>
+                        </span>
+                        <span className="text-[10px] md:text-xs font-bold text-red-400 tracking-wider">LIVE</span>
+                    </div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">명예의 전당</h1>
                     <p className="text-sm md:text-base text-zinc-400">저희의 결혼식을 완성해주셔서 감사합니다.</p>
                 </div>
 
@@ -162,8 +140,8 @@ export const Ranking: React.FC = () => {
                                 ))
                             ) : (
                                 <AnimatePresence mode="popLayout">
-                                    {currentData.map((item, index) => {
-                                        const rank = startIndex + index + 1;
+                                    {rankingData.map((item, index) => {
+                                        const rank = index + 1;
                                         let rankStyles = "text-zinc-300";
                                         let rowStyles = "border-zinc-800 hover:bg-zinc-800/50";
                                         let RankIcon = null;
@@ -235,49 +213,6 @@ export const Ranking: React.FC = () => {
                         </TableBody>
                     </Table>
                 </div>
-                {!isLoading && (
-                    <div className="mt-4 text-zinc-400">
-                        <Pagination>
-                            <PaginationContent>
-                                <PaginationItem>
-                                    <PaginationPrevious
-                                        href="#"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            if (currentPage > 1) setCurrentPage(p => p - 1);
-                                        }}
-                                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                                    />
-                                </PaginationItem>
-                                {Array.from({ length: totalPages }).map((_, i) => (
-                                    <PaginationItem key={i + 1}>
-                                        <PaginationLink
-                                            href="#"
-                                            isActive={currentPage === i + 1}
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                setCurrentPage(i + 1);
-                                            }}
-                                            className="cursor-pointer"
-                                        >
-                                            {i + 1}
-                                        </PaginationLink>
-                                    </PaginationItem>
-                                ))}
-                                <PaginationItem>
-                                    <PaginationNext
-                                        href="#"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            if (currentPage < totalPages) setCurrentPage(p => p + 1);
-                                        }}
-                                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                                    />
-                                </PaginationItem>
-                            </PaginationContent>
-                        </Pagination>
-                    </div>
-                )}
             </Card>
         </div>
     );

@@ -92,14 +92,14 @@ export const Header: React.FC = () => {
                                 </Link>
                             )}
                             <Link
-                                to="/ranking"
+                                to="/hall-of-fame"
                                 className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-all text-zinc-200 hover:text-white group"
                                 onClick={() => setOpen(false)}
                             >
                                 <div className="bg-zinc-800/50 p-2 rounded-lg group-hover:bg-zinc-800 transition-colors">
                                     <Trophy className="w-5 h-5" />
                                 </div>
-                                <span className="font-medium">실시간 랭킹</span>
+                                <span className="font-medium">명예의 전당</span>
                             </Link>
                         </nav>
 

@@ -154,45 +154,43 @@ async def create_game_record(
     rank = better_count + 1
 
     # Broadcast ranking update
-    from app.core.socket import sio
-    from app.utils.masking import mask_name
-    
-    # Check if this record is likely to be in top 30 (for broadcast)
-    # For now, just broadcast top 10 every time.
-    
-    # 1. Get Top 10
-    limit = 10
-    subquery = (
-        select(
-            GameRecord.user_id,
-            func.min(GameRecord.clear_time_ms).label("best_time"),
-            func.max(GameRecord.played_at).label("last_played_at")
+    # Only broadcast if the new record is within top 10
+    if rank <= 10:
+        from app.core.socket import sio
+        from app.utils.masking import mask_name
+        
+        # 1. Get Top 10
+        limit = 10
+        subquery = (
+            select(
+                GameRecord.user_id,
+                func.min(GameRecord.clear_time_ms).label("best_time"),
+                func.max(GameRecord.played_at).label("last_played_at")
+            )
+            .group_by(GameRecord.user_id)
+            .subquery()
         )
-        .group_by(GameRecord.user_id)
-        .subquery()
-    )
 
-    query = (
-        select(subquery.c.user_id, subquery.c.best_time, subquery.c.last_played_at, User.name)
-        .join(User, subquery.c.user_id == User.id)
-        .order_by(subquery.c.best_time.asc())
-        .limit(limit)
-    )
-    
-    result = await db.execute(query)
-    rows = result.all()
-    
-    ranking_list = []
-    for index, row in enumerate(rows):
-        ranking_list.append({
-            "rank": index + 1,
-            "userId": str(row.user_id),
-            "name": mask_name(row.name),
-            "record": f"{row.best_time / 1000:.2f}",
-            "date": row.last_played_at.strftime("%Y-%m-%d") if row.last_played_at else ""
-        })
-    
-    print(f"DEBUG: Broadcasting ranking update to /ranking namespace. Top 1: {ranking_list[0]['name'] if ranking_list else 'N/A'}")
-    await sio.emit('ranking_update', ranking_list, namespace='/ranking')
+        query = (
+            select(subquery.c.user_id, subquery.c.best_time, subquery.c.last_played_at, User.name)
+            .join(User, subquery.c.user_id == User.id)
+            .order_by(subquery.c.best_time.asc())
+            .limit(limit)
+        )
+        
+        result = await db.execute(query)
+        rows = result.all()
+        
+        ranking_list = []
+        for index, row in enumerate(rows):
+            ranking_list.append({
+                "rank": index + 1,
+                "userId": str(row.user_id),
+                "name": mask_name(row.name),
+                "record": f"{row.best_time / 1000:.2f}",
+                "date": row.last_played_at.strftime("%Y-%m-%d") if row.last_played_at else ""
+            })
+        
+        await sio.emit('ranking_update', ranking_list, namespace='/ranking')
 
     return {"success": True, "rank": rank}
