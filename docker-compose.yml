@@ -2,33 +2,53 @@ services:
   backend:
     build:
       context: ./backend
+      dockerfile: Dockerfile
     container_name: sos-backend
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
     volumes:
       - ./backend/data:/app/data
     environment:
-      - SOS_API_PREFIX=/api/v1
-      - DATABASE_URL=sqlite+aiosqlite:///./data/sos.db
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=docker_secret_key_change_me
+      - SOS_API_PREFIX=${SOS_API_PREFIX:-/api/v1}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-sosuser}:${POSTGRES_PASSWORD:-sospassword}@${DB_HOST:-db}:${DB_PORT:-5432}/${POSTGRES_DB:-sosdb}
+      - REDIS_URL=redis://${REDIS_HOST:-redis}:${REDIS_PORT:-6379}/0
+      - SECRET_KEY=${SECRET_KEY:-docker_secret_key_change_me}
+      - TZ=${TZ:-Asia/Seoul}
     depends_on:
       - redis
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:${POSTGRES_VERSION:-15-alpine}
+    container_name: sos-db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-sosuser}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-sospassword}
+      - POSTGRES_DB=${POSTGRES_DB:-sosdb}
+      - TZ=${TZ:-Asia/Seoul}
+    volumes:
+      - ./backend/data/postgres:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
     restart: unless-stopped
 
   redis:
-    image: redis:alpine
+    image: redis:${REDIS_VERSION:-alpine}
     container_name: sos-redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
+    environment:
+      - TZ=${TZ:-Asia/Seoul}
     restart: unless-stopped
 
   frontend:
     build:
       context: .
+      dockerfile: Dockerfile
     container_name: sos-frontend
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT:-3000}:80"
     depends_on:
       - backend
     restart: unless-stopped
