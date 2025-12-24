@@ -10,8 +10,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Skeleton } from "@/components/ui/skeleton";
 import gameSuccess from '@/assets/images/game_success.webp';
-import { RotateCcw, Trophy, Sparkles } from 'lucide-react';
+import { RotateCcw, Trophy, Mail } from 'lucide-react';
 import { HiddenMessageDialog } from '@/components/HiddenMessageDialog';
+import { motion } from 'framer-motion';
 
 const SuccessDialogImage = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -109,13 +110,35 @@ export const SuccessDialog: React.FC<SuccessDialogProps> = ({
                         </Button>
                     </div>
                     {rank === 1 && (
-                        <Button
-                            onClick={() => setShowHiddenDialog(true)}
-                            className="w-full bg-yellow-400 text-black hover:bg-yellow-500 gap-2 font-bold py-6 animate-pulse"
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5, duration: 0.5 }}
+                            className="w-full mt-2"
                         >
-                            <Sparkles className="w-4 h-4" />
-                            히든 메시지 확인
-                        </Button>
+                            <div
+                                onClick={() => setShowHiddenDialog(true)}
+                                className="group relative w-full bg-yellow-400/10 hover:bg-yellow-400/20 border-2 border-dashed border-yellow-400/50 hover:border-yellow-400 rounded-xl p-4 cursor-pointer transition-all duration-300 flex items-center justify-between gap-4 overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-yellow-400/5 group-hover:bg-yellow-400/10 transition-colors" />
+                                <div className="flex items-center gap-4 relative z-10">
+                                    <div className="bg-yellow-400 rounded-full p-2 text-black group-hover:scale-110 transition-transform duration-300">
+                                        <Mail className="w-5 h-5" />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-yellow-400 font-bold text-sm">새로운 메시지가 도착했습니다</p>
+                                        <p className="text-zinc-400 text-xs">클릭하여 주인공의 편지 확인하기</p>
+                                    </div>
+                                </div>
+                                <motion.div
+                                    className="relative z-10 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded shadow-lg"
+                                    animate={{ y: [0, -4, 0] }}
+                                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                                >
+                                    OPEN
+                                </motion.div>
+                            </div>
+                        </motion.div>
                     )}
                 </DialogFooter>
                 <HiddenMessageDialog
