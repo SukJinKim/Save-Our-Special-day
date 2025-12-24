@@ -19,8 +19,7 @@ import {
 } from "@tanstack/react-table";
 import { getMyGameHistory, type GameHistoryItem } from '@/lib/game';
 import { Loader2, ClipboardList, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+
 import { Button } from "@/components/ui/button";
 import {
     Pagination,
@@ -101,7 +100,13 @@ export const MyRecords: React.FC = () => {
 
                 return (
                     <div className="text-zinc-400 ml-4">
-                        {dateStr !== "-" ? format(new Date(normalizedDateStr), "yyyy-MM-dd HH:mm", { locale: ko }) : "-"}
+                        {dateStr !== "-" ? new Date(normalizedDateStr).toLocaleString(undefined, {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : "-"}
                     </div>
                 );
             },

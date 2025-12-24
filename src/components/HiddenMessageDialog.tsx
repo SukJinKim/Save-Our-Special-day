@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { PartyPopper, Loader2, RotateCcw, Trophy } from 'lucide-react';
 import { Typewriter } from './ui/Typewriter';
-import { getHiddenMessages } from '@/lib/api';
+import { getHiddenMessages } from '@/lib/game';
 import { Button } from '@/components/ui/button';
 
 interface HiddenMessageDialogProps {

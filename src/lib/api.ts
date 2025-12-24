@@ -54,11 +54,3 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
-
-
-export const getHiddenMessages = async () => {
-    const { data } = await api.get<{ messages: string[] }>('/games/hidden-message');
-    return data;
-};
-
-
