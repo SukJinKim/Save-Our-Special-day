@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Shuffle, RotateCcw, Lightbulb } from 'lucide-react';
 import { recordGame, getPuzzleImage } from '@/lib/game';
 import { showToast } from '@/lib/customToast';
@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
-import { Skeleton } from "@/components/ui/skeleton";
 import { SuccessDialog } from '@/components/SuccessDialog';
 import { HintDialog } from '@/components/HintDialog';
 import { useAuthStore } from '@/lib/store/useAuthStore';
+import { TimerDisplay } from '@/components/TimerDisplay';
+import { PuzzleGrid } from '@/components/PuzzleGrid';
 
 const optimizeImage = (
     src: string,
@@ -85,7 +86,7 @@ export const Play: React.FC = () => {
     const endTimeRef = useRef<number>(0);
     const navigate = useNavigate();
 
-    const resetGame = () => {
+    const resetGame = useCallback(() => {
         const shuffled = [...DEFAULT_ITEMS];
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -102,9 +103,9 @@ export const Play: React.FC = () => {
         setIsHintActive(false);
         setRank(undefined);
         setIsSubmitting(false);
-    };
+    }, []);
 
-    const shufflePuzzle = () => {
+    const shufflePuzzle = useCallback(() => {
         const shuffled = [...DEFAULT_ITEMS];
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -112,7 +113,7 @@ export const Play: React.FC = () => {
         }
         setShuffledItems(shuffled);
         setSelectedIndex(null);
-    };
+    }, []);
 
     const { isAuthenticated } = useAuthStore();
 
@@ -154,7 +155,7 @@ export const Play: React.FC = () => {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (isLoading || !isImageLoaded) return; // Don't start timer while loading or image not ready
@@ -269,7 +270,14 @@ export const Play: React.FC = () => {
         }
     }, [isWon]);
 
-    const handleTileClick = (index: number) => {
+    const checkWinCondition = useCallback((currentItems: typeof DEFAULT_ITEMS) => {
+        const isCorrect = currentItems.every((item, index) => item.id === DEFAULT_ITEMS[index].id);
+        if (isCorrect) {
+            setIsGlowing(true);
+        }
+    }, []);
+
+    const handleTileClick = useCallback((index: number) => {
         if (isWon || isGameOver || isGlowing) return;
 
         if (selectedindex === null) {
@@ -280,27 +288,19 @@ export const Play: React.FC = () => {
             setSelectedIndex(null);
         } else {
             // Swap tiles
-            const newItems = [...shuffledItems];
-            [newItems[selectedindex], newItems[index]] = [newItems[index], newItems[selectedindex]];
-            setShuffledItems(newItems);
+            setShuffledItems(currentItems => {
+                const newItems = [...currentItems];
+                [newItems[selectedindex], newItems[index]] = [newItems[index], newItems[selectedindex]];
+                // Check win condition after update
+                // Note: This check runs synchronously, so it doesn't need to be in useEffect unless strictly required
+                // But we can call checkWinCondition here with newItems
+                checkWinCondition(newItems);
+                return newItems;
+            });
             setSelectedIndex(null);
-            checkWinCondition(newItems);
         }
-    };
+    }, [isWon, isGameOver, isGlowing, checkWinCondition, selectedindex]);
 
-    const checkWinCondition = (currentItems: typeof DEFAULT_ITEMS) => {
-        const isCorrect = currentItems.every((item, index) => item.id === DEFAULT_ITEMS[index].id);
-        if (isCorrect) {
-            setIsGlowing(true);
-        }
-    };
-
-    const formatTime = (ms: number) => {
-        if (ms >= 60000) return "01:00";
-        const seconds = Math.floor(ms / 1000);
-        const centiseconds = Math.floor((ms % 1000) / 10);
-        return `${seconds.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`;
-    };
 
     const getRecord = () => {
         const timeTaken = 60000 - timeLeft;
@@ -317,66 +317,24 @@ export const Play: React.FC = () => {
                     <p className="text-zinc-400 text-xs md:text-base">조각을 클릭하여 서로 위치를 바꾸세요.</p>
                 </div>
 
-                {/* Timer Bar */}
-                <div className="mb-3 md:mb-4 w-full">
-                    <div className="flex justify-between items-center mb-1">
-                        <span className="text-xs font-medium text-zinc-400">남은 시간</span>
-                        {isLoading || !isImageLoaded ? (
-                            <Skeleton className="h-5 w-16" />
-                        ) : (
-                            <span className={`text-sm font-bold font-mono ${timeLeft <= 10000 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
-                                {formatTime(timeLeft)}
-                            </span>
-                        )}
-                    </div>
-                    <div className="w-full bg-zinc-800 rounded-full h-2 md:h-2.5 overflow-hidden">
-                        <div
-                            className={`h-2 md:h-2.5 rounded-full ${timeLeft <= 10000 ? 'bg-red-500' : 'bg-white'} w-full origin-left`}
-                            style={{ transform: `scaleX(${timeLeft / 60000})` }}
-                        ></div>
-                    </div>
-                </div>
+                <TimerDisplay
+                    timeLeft={timeLeft}
+                    isLoading={isLoading}
+                    isImageLoaded={isImageLoaded}
+                />
 
-                {isLoading || !isImageLoaded ? (
-                    <div className="grid grid-cols-4 gap-0.5 w-full bg-zinc-950 p-1 rounded-lg border border-zinc-800 mb-4 md:mb-6" style={{ aspectRatio: aspectRatio }}>
-                        {Array.from({ length: 16 }).map((_, i) => (
-                            <Skeleton key={i} className="w-full h-full rounded-sm" />
-                        ))}
-                    </div>
-                ) : (
-                    <div
-                        className={`grid grid-cols-4 gap-0.5 w-full bg-zinc-950 p-1 rounded-lg border border-zinc-800 mb-4 md:mb-6 relative transition-all duration-1000 ${isGlowing ? 'shadow-[0_0_50px_20px_rgba(255,255,255,0.5)] z-20 scale-105 border-white' : ''
-                            }`}
-                        style={{ aspectRatio: aspectRatio }}
-                    >
-                        {isGameOver && !isWon && !isGlowing && (
-                            <div className="absolute inset-0 z-10 bg-black/70 flex flex-col items-center justify-center rounded-lg backdrop-blur-sm">
-                                <h2 className="text-2xl md:text-3xl font-bold text-red-500 mb-2">Game Over</h2>
-                                <p className="text-zinc-300 text-sm md:text-base">시간이 초과되었습니다.</p>
-                            </div>
-                        )}
-
-                        {shuffledItems.map((item, index) => (
-                            <div
-                                key={index}
-                                className={`w-full h-full rounded-sm overflow-hidden relative cursor-pointer transition-all duration-200 ${selectedindex === index
-                                    ? 'ring-1 ring-yellow-400 ring-offset-1 ring-offset-zinc-900 z-10 scale-105'
-                                    : 'hover:brightness-110'
-                                    } ${isGlowing ? 'ring-0' : ''}`}
-                                onClick={() => handleTileClick(index)}
-                            >
-                                <div
-                                    className="w-full h-full"
-                                    style={{
-                                        backgroundImage: `url("${image}")`,
-                                        backgroundSize: '400% 400%',
-                                        backgroundPosition: item.pos
-                                    }}
-                                />
-                            </div>
-                        ))}
-                    </div>
-                )}
+                <PuzzleGrid
+                    items={shuffledItems}
+                    isLoading={isLoading}
+                    isImageLoaded={isImageLoaded}
+                    aspectRatio={aspectRatio}
+                    isGlowing={isGlowing}
+                    isGameOver={isGameOver}
+                    isWon={isWon}
+                    selectedIndex={selectedindex}
+                    image={image}
+                    onTileClick={handleTileClick}
+                />
 
                 <div className={isGameOver ? "flex justify-center" : "flex justify-between gap-3"}>
                     {!isGameOver && (
@@ -432,3 +390,4 @@ export const Play: React.FC = () => {
         </div>
     );
 };
+
