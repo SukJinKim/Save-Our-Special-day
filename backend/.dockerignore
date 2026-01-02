@@ -16,6 +16,6 @@ htmlcov
 .git
 .gitignore
 README.md
-data/*.db
+data
 sos.db
 sql_app.db
